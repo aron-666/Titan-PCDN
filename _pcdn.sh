@@ -783,6 +783,7 @@ parse_command_args() {
             -t|--token)
                 if [[ $# -gt 1 ]]; then
                     CMD_TOKEN="$2"
+                    echo -e "${BLUE}設置 token: $CMD_TOKEN${NC}"
                     shift 2
                 else
                     echo -e "${RED}錯誤: -t/--token 需要一個參數${NC}"
@@ -792,6 +793,7 @@ parse_command_args() {
             -r|--region)
                 if [[ $# -gt 1 ]]; then
                     CMD_REGION="$2"
+                    echo -e "${BLUE}設置 region: $CMD_REGION${NC}"
                     shift 2
                 else
                     echo -e "${RED}錯誤: -r/--region 需要一個參數${NC}"
@@ -802,9 +804,11 @@ parse_command_args() {
                 if [[ $# -gt 1 && "$2" != -* ]]; then
                     # 如果下一個參數不是以 - 開頭，就認為是此參數的值
                     CMD_INSTALL="$2"
+                    echo -e "${BLUE}設置安裝選項: $CMD_INSTALL${NC}"
                     shift 2
                 else
                     CMD_INSTALL="true"
+                    echo -e "${BLUE}設置安裝選項: true${NC}"
                     shift
                 fi
                 ;;
@@ -816,9 +820,9 @@ parse_command_args() {
     done
     
     # 可以添加參數驗證邏輯
-    if [[ "$CMD_INSTALL" != "true" && "$CMD_INSTALL" != "false" && "$CMD_INSTALL" != "cn" ]]; then
-        CMD_INSTALL="true"  # 如果值不合法，設為預設值
-    fi
+    # if [[ "$CMD_INSTALL" != "true" && "$CMD_INSTALL" != "false" && "$CMD_INSTALL" != "cn" ]]; then
+    #     CMD_INSTALL="true"  # 如果值不合法，設為預設值
+    # fi
     return 0
 }
 
