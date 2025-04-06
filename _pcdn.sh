@@ -33,7 +33,7 @@ update_system_limits() {
 
     # 設定 sysctl.conf
     SYSCTL_CONF="/etc/sysctl.conf"
-    if [[ -f "$SYSCTL_CONF" ]]; then
+    if [[ -f "$SYSCTL_CONF" ]];then
         SYSCTL_SETTINGS=(
             "fs.inotify.max_user_instances = 25535"
             "net.core.rmem_max=600000000"
@@ -297,14 +297,18 @@ config_env() {
     ensure_conf_dir
     local hook_enable=${1:-"false"}
     local hook_region=${2:-"cn"}
+    local interactive=${3:-"true"}
     
-    echo -e "${BLUE}設定 HOOK_ENABLE (true/false): ${NC}"
-    read -p "(預設: $hook_enable): " input_hook_enable
-    hook_enable=${input_hook_enable:-$hook_enable}
-    
-    echo -e "${BLUE}設定 HOOK_REGION (當前只支援 cn): ${NC}"
-    read -p "(預設: $hook_region): " input_hook_region
-    hook_region=${input_hook_region:-$hook_region}
+    # 只有在互動模式下才請求輸入
+    if [[ "$interactive" == "true" ]]; then
+        echo -e "${BLUE}設定 HOOK_ENABLE (true/false): ${NC}"
+        read -p "(預設: $hook_enable): " input_hook_enable
+        hook_enable=${input_hook_enable:-$hook_enable}
+        
+        echo -e "${BLUE}設定 HOOK_REGION (當前只支援 cn): ${NC}"
+        read -p "(預設: $hook_region): " input_hook_region
+        hook_region=${input_hook_region:-$hook_region}
+    fi
     
     # 生成 conf/.env 檔案
     cat > conf/.env << EOF
@@ -370,7 +374,6 @@ check_docker_installed() {
     else
         echo -e "${GREEN}Docker Compose 已可用${NC}"
     fi
-    
     return 0
 }
 
@@ -384,7 +387,6 @@ retry() {
     while [[ $attempt -le $max_attempts ]]; do
         echo -e "${BLUE}嘗試 $attempt/$max_attempts: $description${NC}"
         eval $command && break
-        
         echo -e "${YELLOW}嘗試 $attempt/$max_attempts 失敗，稍等後重試...${NC}"
         sleep 3
         attempt=$((attempt + 1))
@@ -394,7 +396,6 @@ retry() {
         echo -e "${RED}錯誤: 在 $max_attempts 次嘗試後，$description 操作失敗${NC}"
         return 1
     fi
-    
     return 0
 }
 
@@ -472,7 +473,6 @@ install_docker() {
         echo "1. 國際源 (默認)"
         echo "2. 中國源 (阿里雲)"
         read -p "請選擇 [1/2]: " choice
-        
         case $choice in
             2)
                 region="cn"
@@ -484,7 +484,6 @@ install_docker() {
     fi
     
     echo -e "${BLUE}正在安裝 Docker (使用${region}源)...${NC}"
-    
     if [[ "$region" == "cn" ]]; then
         install_docker_cn
         return $?
@@ -498,7 +497,6 @@ install_docker() {
         sudo usermod -aG docker $USER
         echo -e "${GREEN}Docker 安裝完成！${NC}"
         echo -e "${GREEN}此安裝包含了 Docker Compose 功能${NC}"
-        
         # 移除安裝腳本
         rm get-docker.sh
     elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -522,7 +520,7 @@ parse_args() {
     local hook_enable="false"
     local command="$1"
     shift
-
+    
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -t|--token)
@@ -551,9 +549,9 @@ parse_args() {
             if [[ -n "$token" || -n "$region" ]]; then
                 ensure_conf_dir
                 
-                # 如果提供了 region，更新 env 檔案
+                # 如果提供了 region，更新 env 檔案 (非互動模式)
                 if [[ -n "$region" ]]; then
-                    config_env "$hook_enable" "$region"
+                    config_env "$hook_enable" "$region" "false"
                 fi
                 
                 # 如果提供了 token，更新 key 檔案
@@ -561,7 +559,6 @@ parse_args() {
                     config_key "$token"
                 fi
             fi
-            
             start_pcdn
             ;;
         config)
@@ -599,7 +596,6 @@ parse_args() {
 # 檢查配置文件是否存在
 check_config() {
     local config_needed=false
-    
     ensure_conf_dir
     
     if [[ ! -f "conf/.env" ]]; then
@@ -621,7 +617,6 @@ check_config() {
             return 1
         fi
     fi
-    
     return 0
 }
 
@@ -715,7 +710,6 @@ view_docker_logs() {
     
     # 使用 timeout 命令運行 docker compose logs，這樣不會一直阻塞
     timeout --foreground 30s docker compose logs --tail 100 --follow || true
-    
     echo -e "${GREEN}日誌查看已結束${NC}"
 }
 
@@ -741,7 +735,6 @@ view_pcdn_logs() {
             
             # 讓用戶選擇要查看的日誌文件
             read -p "請輸入要查看的日誌文件路徑 (或按 Enter 取消): " log_file
-            
             if [[ -z "$log_file" ]]; then
                 return 1
             elif [[ -f "$log_file" ]]; then
@@ -764,7 +757,6 @@ view_pcdn_logs() {
     
     # 使用 timeout 命令運行 tail，這樣不會一直阻塞
     timeout --foreground 30s tail -f -n 100 ./data/agent/agent.log || true
-    
     echo -e "${GREEN}日誌查看已結束${NC}"
 }
 
@@ -827,7 +819,6 @@ parse_command_args() {
     if [[ "$CMD_INSTALL" != "true" && "$CMD_INSTALL" != "false" && "$CMD_INSTALL" != "cn" ]]; then
         CMD_INSTALL="true"  # 如果值不合法，設為預設值
     fi
-    
     return 0
 }
 
@@ -859,7 +850,6 @@ execute_command() {
                     config_key "$token"
                 fi
             fi
-            
             start_pcdn
             return $?
             ;;
@@ -907,5 +897,4 @@ execute_command() {
     esac
 }
 
-# 執行主程序
 main "$@"
