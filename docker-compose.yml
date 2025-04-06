@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  titan-pcdn:
+    image: aron666/titan-pcdn
+    privileged: true
+    restart: always
+    tty: true
+    stdin_open: true
+    security_opt:
+      - apparmor=unconfined
+    cap_add:
+      - ALL
+    network_mode: host
+    volumes:
+      - ./data:/app/data
+      - ./data/docker:/var/lib/docker
+      - ./conf/.env:/app/agent/.env:ro
+      - ./conf/.key:/app/agent/.key:ro
