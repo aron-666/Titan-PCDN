@@ -273,8 +273,23 @@ show_menu() {
     echo "2. 停止 PCDN 服務"
     echo "3. 刪除 PCDN 服務"
     echo "4. 配置 PCDN 服務"
+    echo "5. 查看 Docker 日誌"
+    echo "6. 查看 PCDN 日誌 (agent.log)"
     echo "0. 退出"
     echo "===================================="
+}
+
+# 查看 Docker 日誌
+view_docker_logs() {
+    echo -e "${BLUE}查看 Docker 日誌...${NC}"
+    docker compose logs  --tail 100 --follow
+}
+
+# 查看 PCDN 日誌
+view_pcdn_logs() {
+    echo -e "${BLUE}查看 PCDN 日誌 (agent.log)...${NC}"
+    # 確認
+    tail -f -n 100 ./data/agent/agent.log
 }
 
 # 生成或修改 .env 檔案
@@ -635,7 +650,7 @@ main() {
         execute_command "$CMD_ACTION" "$CMD_TOKEN" "$CMD_REGION"
     else
         show_menu
-        read -p "請選擇操作 [0-4]: " choice
+        read -p "請選擇操作 [0-6]: " choice
         handle_menu_choice "$choice"
     fi
 }
@@ -655,6 +670,12 @@ handle_menu_choice() {
         4)
             config_pcdn
             ;;
+        5)
+            view_docker_logs
+            ;;
+        6)
+            view_pcdn_logs
+            ;;
         0)
             echo "感謝使用！再見！"
             exit 0
@@ -663,74 +684,88 @@ handle_menu_choice() {
             echo -e "${RED}錯誤：無效的選擇，請重新輸入${NC}"
             ;;
     esac
+    
+    # 顯示「按任意鍵返回選單」提示（除非選擇了退出選項）
+    if [[ "$1" != "0" ]]; then
+        echo
+        read -n 1 -s -r -p "按任意鍵返回選單..."
+        echo
+        show_menu
+        read -p "請選擇操作 [0-6]: " choice
+        handle_menu_choice "$choice"
+    fi
 }
 
-# 執行指定命令
-execute_command() {
-    local command="$1"
-    local token="$2"
-    local region="$3"
-    local hook_enable="false"
+# 查看 Docker 日誌（優化版）
+view_docker_logs() {
+    echo -e "${BLUE}查看 Docker 日誌...${NC}"
     
-    # 如果提供了 region，自動啟用 HOOK_ENABLE
-    if [[ -n "$region" ]]; then
-        hook_enable="true"
+    # 檢查 Docker 服務是否運行中
+    if ! docker compose ps | grep -q "Up"; then
+        echo -e "${YELLOW}警告: 沒有運行中的 Docker 容器${NC}"
+        read -p "是否仍要查看最近的日誌? (y/n): " confirm
+        if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+            return 0
+        fi
     fi
     
-    case "$command" in
-        start)
-            # 如果提供了參數，先進行配置
-            if [[ -n "$token" || -n "$region" ]]; then
-                ensure_conf_dir
-                
-                # 如果提供了 region，更新 env 檔案
-                if [[ -n "$region" ]]; then
-                    config_env "$hook_enable" "$region"
-                fi
-                
-                # 如果提供了 token，更新 key 檔案
-                if [[ -n "$token" ]]; then
-                    config_key "$token"
-                fi
-            fi
+    # 提供有用的提示
+    echo -e "${YELLOW}正在顯示最新的 100 條日誌記錄，按 Ctrl+C 退出...${NC}"
+    echo -e "${YELLOW}日誌顯示會實時更新，直到您按下 Ctrl+C${NC}"
+    
+    # 使用 timeout 命令運行 docker compose logs，這樣不會一直阻塞
+    timeout --foreground 30s docker compose logs --tail 100 --follow || true
+    
+    echo -e "${GREEN}日誌查看已結束${NC}"
+}
+
+# 查看 PCDN 日誌（優化版）
+view_pcdn_logs() {
+    echo -e "${BLUE}查看 PCDN 日誌 (agent.log)...${NC}"
+    
+    # 確認日誌檔案存在
+    if [[ ! -f "./data/agent/agent.log" ]]; then
+        echo -e "${RED}錯誤: 找不到 PCDN 日誌文件 (./data/agent/agent.log)${NC}"
+        echo -e "${YELLOW}可能原因:${NC}"
+        echo -e "${YELLOW}1. PCDN 服務尚未啟動${NC}"
+        echo -e "${YELLOW}2. PCDN 服務剛剛啟動，尚未生成日誌${NC}"
+        echo -e "${YELLOW}3. 日誌文件位於其他位置${NC}"
+        
+        # 嘗試找出可能的日誌文件
+        echo -e "${BLUE}嘗試搜尋可能的日誌文件...${NC}"
+        potential_logs=$(find ./data -name "*.log" 2>/dev/null)
+        
+        if [[ -n "$potential_logs" ]]; then
+            echo -e "${GREEN}找到以下可能的日誌文件:${NC}"
+            echo "$potential_logs"
             
-            start_pcdn
-            return $?
-            ;;
-        stop)
-            stop_pcdn
-            return $?
-            ;;
-        delete)
-            delete_pcdn
-            return $?
-            ;;
-        config)
-            ensure_conf_dir
+            # 讓用戶選擇要查看的日誌文件
+            read -p "請輸入要查看的日誌文件路徑 (或按 Enter 取消): " log_file
             
-            # 如果提供了 region，更新 env 檔案
-            if [[ -n "$region" ]]; then
-                config_env "$hook_enable" "$region"
+            if [[ -z "$log_file" ]]; then
+                return 1
+            elif [[ -f "$log_file" ]]; then
+                echo -e "${YELLOW}正在顯示 $log_file 的最新 100 條記錄，按 Ctrl+C 退出...${NC}"
+                timeout --foreground 30s tail -f -n 100 "$log_file" || true
+                return 0
+            else
+                echo -e "${RED}錯誤: 指定的文件不存在${NC}"
+                return 1
             fi
-            
-            # 如果提供了 token，更新 key 檔案
-            if [[ -n "$token" ]]; then
-                config_key "$token"
-            fi
-            
-            # 如果沒有提供任何參數，進入互動式配置
-            if [[ -z "$region" && -z "$token" ]]; then
-                config_pcdn
-            fi
-            return $?
-            ;;
-        *)
-            show_menu
-            read -p "請選擇操作 [0-4]: " choice
-            handle_menu_choice "$choice"
-            return $?
-            ;;
-    esac
+        else
+            echo -e "${YELLOW}未找到任何日誌文件${NC}"
+            return 1
+        fi
+    fi
+    
+    # 提供有用的提示
+    echo -e "${YELLOW}正在顯示最新的 100 條日誌記錄，按 Ctrl+C 退出...${NC}"
+    echo -e "${YELLOW}日誌顯示會實時更新，直到您按下 Ctrl+C${NC}"
+    
+    # 使用 timeout 命令運行 tail，這樣不會一直阻塞
+    timeout --foreground 30s tail -f -n 100 ./data/agent/agent.log || true
+    
+    echo -e "${GREEN}日誌查看已結束${NC}"
 }
 
 # 統一解析命令行參數
@@ -794,6 +829,82 @@ parse_command_args() {
     fi
     
     return 0
+}
+
+# 執行指定命令
+execute_command() {
+    local command="$1"
+    local token="$2"
+    local region="$3"
+    local hook_enable="false"
+    
+    # 如果提供了 region，自動啟用 HOOK_ENABLE
+    if [[ -n "$region" ]]; then
+        hook_enable="true"
+    fi
+    
+    case "$command" in
+        start)
+            # 如果提供了參數，先進行配置
+            if [[ -n "$token" || -n "$region" ]]; then
+                ensure_conf_dir
+                
+                # 如果提供了 region，更新 env 檔案
+                if [[ -n "$region" ]]; then
+                    config_env "$hook_enable" "$region"
+                fi
+                
+                # 如果提供了 token，更新 key 檔案
+                if [[ -n "$token" ]]; then
+                    config_key "$token"
+                fi
+            fi
+            
+            start_pcdn
+            return $?
+            ;;
+        stop)
+            stop_pcdn
+            return $?
+            ;;
+        delete)
+            delete_pcdn
+            return $?
+            ;;
+        config)
+            ensure_conf_dir
+            
+            # 如果提供了 region，更新 env 檔案
+            if [[ -n "$region" ]]; then
+                config_env "$hook_enable" "$region"
+            fi
+            
+            # 如果提供了 token，更新 key 檔案
+            if [[ -n "$token" ]]; then
+                config_key "$token"
+            fi
+            
+            # 如果沒有提供任何參數，進入互動式配置
+            if [[ -z "$region" && -z "$token" ]]; then
+                config_pcdn
+            fi
+            return $?
+            ;;
+        logs)
+            view_docker_logs
+            return $?
+            ;;
+        agent-logs)
+            view_pcdn_logs
+            return $?
+            ;;
+        *)
+            show_menu
+            read -p "請選擇操作 [0-6]: " choice
+            handle_menu_choice "$choice"
+            return $?
+            ;;
+    esac
 }
 
 # 執行主程序
