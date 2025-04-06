@@ -625,9 +625,6 @@ init() {
     # 解析命令行參數
     parse_command_args "$@"
     
-    # 更新系統限制設置
-    update_system_limits
-    
     # 檢查 root 權限
     check_root_privileges
     
@@ -846,7 +843,7 @@ execute_command() {
                 
                 # 如果提供了 region，更新 env 檔案
                 if [[ -n "$region" ]]; then
-                    config_env "$hook_enable" "$region"
+                    config_env "$hook_enable" "$region" "false"
                 fi
                 
                 # 如果提供了 token，更新 key 檔案
@@ -854,6 +851,10 @@ execute_command() {
                     config_key "$token"
                 fi
             fi
+            
+            # 更新系統限制設置
+            update_system_limits
+
             start_pcdn
             return $?
             ;;
@@ -870,7 +871,7 @@ execute_command() {
             
             # 如果提供了 region，更新 env 檔案
             if [[ -n "$region" ]]; then
-                config_env "$hook_enable" "$region"
+                config_env "$hook_enable" "$region" "false"
             fi
             
             # 如果提供了 token，更新 key 檔案
