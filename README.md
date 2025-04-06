@@ -14,8 +14,8 @@
 
 1. 下載腳本:
    ```bash
-   git clone https://github.com/yourusername/Titan-Pcdn.git
-   cd Titan-Pcdn
+   git clone https://github.com/aron-666/Titan-PCDN.git titan-pcdn
+   cd titan-pcdn
    chmod +x pcdn.sh
    ```
 
