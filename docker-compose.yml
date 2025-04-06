@@ -16,3 +16,4 @@ services:
       - ./data/docker:/var/lib/docker
       - ./conf/.env:/app/agent/.env:ro
       - ./conf/.key:/app/agent/.key:ro
+      - /etc/docker:/etc/docker:ro
