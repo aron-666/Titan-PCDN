@@ -77,8 +77,22 @@
 
 ### 基本安裝與啟動
 
+#### 中國區域安裝
+
 ```bash
-# 下載腳本並設置權限
+# 下載腳本並設置權限 (中國區域使用 Gitee 源)
+git clone https://gitee.com/hiro199/Titan-PCDN.git titan-pcdn
+cd titan-pcdn
+chmod +x pcdn.sh
+
+# 啟動服務 (會進入互動式配置)
+sudo ./pcdn.sh start
+```
+
+#### 其他區域安裝
+
+```bash
+# 下載腳本並設置權限 (國際區域使用 GitHub 源)
 git clone https://github.com/aron-666/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
@@ -89,20 +103,30 @@ sudo ./pcdn.sh start
 
 ### 快速部署 (一鍵啟動)
 
+#### 中國區域部署
+
 ```bash
-# 下載腳本並設置權限
+# 中國區域使用 Gitee 源（速度更快）
+git clone https://gitee.com/hiro199/Titan-PCDN.git titan-pcdn
+cd titan-pcdn
+chmod +x pcdn.sh
+
+# 中國區域快速啟動
+sudo ./pcdn.sh start -t 你的TOKEN -r cn -i cn
+```
+
+#### 其他區域部署
+
+```bash
+# 國際區域使用 GitHub 源
 git clone https://github.com/aron-666/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
 
-# 使用特定參數快速啟動
-
-# 中國區域
-sudo ./pcdn.sh start -t 你的TOKEN -r cn -i cn
-
-# 其他區域
+# 其他區域快速啟動
 sudo ./pcdn.sh start -t 你的TOKEN -i
 ```
+
 > 注意: `-r` 參數為可選，用於指定區域。當設定為 `cn` 時會進行中國區域的特殊處理。
 > `-i cn` 參數用於在中國區域安裝 Docker 時使用中國鏡像源。
 
