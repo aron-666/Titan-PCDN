@@ -80,24 +80,24 @@
 #### 中國區域安裝
 
 ```bash
-# 下載腳本並設置權限 (中國區域使用 Gitee 源)
+# 1. 下載腳本並設置權限 (中國區域使用 Gitee 源，只需下載一次)
 git clone https://gitee.com/hiro199/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
 
-# 啟動服務 (會進入互動式配置)
+# 2. 啟動服務 (會進入互動式配置)
 sudo ./pcdn.sh start
 ```
 
 #### 其他區域安裝
 
 ```bash
-# 下載腳本並設置權限 (國際區域使用 GitHub 源)
+# 1. 下載腳本並設置權限 (國際區域使用 GitHub 源，只需下載一次)
 git clone https://github.com/aron-666/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
 
-# 啟動服務 (會進入互動式配置)
+# 2. 啟動服務 (會進入互動式配置)
 sudo ./pcdn.sh start
 ```
 
@@ -106,24 +106,24 @@ sudo ./pcdn.sh start
 #### 中國區域部署
 
 ```bash
-# 中國區域使用 Gitee 源（速度更快）
+# 1. 下載腳本並設置權限 (中國區域使用 Gitee 源，只需下載一次)
 git clone https://gitee.com/hiro199/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
 
-# 中國區域快速啟動
+# 2. 中國區域快速啟動
 sudo ./pcdn.sh start -t 你的TOKEN -r cn -i cn
 ```
 
 #### 其他區域部署
 
 ```bash
-# 國際區域使用 GitHub 源
+# 1. 下載腳本並設置權限 (國際區域使用 GitHub 源，只需下載一次)
 git clone https://github.com/aron-666/Titan-PCDN.git titan-pcdn
 cd titan-pcdn
 chmod +x pcdn.sh
 
-# 其他區域快速啟動
+# 2. 其他區域快速啟動
 sudo ./pcdn.sh start -t 你的TOKEN -i
 ```
 
