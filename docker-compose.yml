@@ -22,7 +22,6 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /run:/run
       - /run/lock:/run/lock
-      - ./data/log/journal:/var/log/journal
     tmpfs:
       - /run
       - /run/lock
