@@ -10,7 +10,7 @@ services:
     cap_add:
       - ALL
     network_mode: host
-    cgroupns_mode: private
+    cgroup: private
     volumes:
       - ./data:/app/data
       - ./data/docker:/var/lib/docker
