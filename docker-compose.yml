@@ -19,6 +19,6 @@ services:
       - /etc/docker:/etc/docker:ro
 
     tmpfs:
-      - /run
-      - /run/lock
-      - /tmp
+      - /run:mode=755
+      - /run/lock:mode=755
+      - /tmp:mode=1777
