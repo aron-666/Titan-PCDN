@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   titan-pcdn:
     image: aron666/titan-pcdn
@@ -11,6 +10,7 @@ services:
     cap_add:
       - ALL
     network_mode: host
+    cgroup: private
     volumes:
       - ./data:/app/data
       - ./data/docker:/var/lib/docker
