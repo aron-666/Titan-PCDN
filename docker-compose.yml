@@ -17,3 +17,12 @@ services:
       - ./conf/.env:/app/agent/.env:ro
       - ./conf/.key:/app/agent/.key:ro
       - /etc/docker:/etc/docker:ro
+
+
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /run:/run
+      - /run/lock:/run/lock
+      - ./data/log/journal:/var/log/journal
+    tmpfs:
+      - /run
+      - /run/lock
