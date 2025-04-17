@@ -17,8 +17,3 @@ services:
       - ./conf/.env:/app/agent/.env:ro
       - ./conf/.key:/app/agent/.key:ro
       - /etc/docker:/etc/docker:ro
-
-    tmpfs:
-      - /run:mode=755
-      - /run/lock:mode=755
-      - /tmp:mode=1777
