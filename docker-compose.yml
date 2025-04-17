@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   titan-pcdn:
     image: aron666/titan-pcdn
