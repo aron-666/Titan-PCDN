@@ -10,7 +10,11 @@ services:
     cap_add:
       - ALL
     network_mode: host
-    cgroup: private
+    cgroup: host
+    deploy:
+      resources:
+        limits:
+          pids: 0
     volumes:
       - ./data:/app/data
       - ./data/docker:/var/lib/docker
