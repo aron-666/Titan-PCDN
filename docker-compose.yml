@@ -15,7 +15,6 @@ services:
       resources:
         limits:
           pids: 0
-    init: true
     volumes:
       - ./data:/app/data
       - ./data/docker:/var/lib/docker
